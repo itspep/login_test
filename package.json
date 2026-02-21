@@ -8,7 +8,8 @@
     "dev": "nodemon src/index.js",
     "build": "prisma generate",
     "migrate:dev": "prisma migrate dev",
-    "migrate:deploy": "prisma migrate deploy"
+    "migrate:deploy": "prisma migrate deploy",
+    "railway:migrate": "node scripts/railway-migrate.js"
   },
   "keywords": [],
   "author": "",
