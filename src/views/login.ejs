@@ -1,0 +1,48 @@
+<%- include('partials/header') %>
+
+<div class="auth-form">
+    <h2>Login to Your Account</h2>
+    
+    <% if (locals.error) { %>
+        <div class="error-messages">
+            <div class="error"><%= error %></div>
+        </div>
+    <% } %>
+    
+    <% if (locals.success) { %>
+        <div class="success-message">
+            <%= success %>
+        </div>
+    <% } %>
+    
+    <form action="/auth/login" method="POST">
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input 
+                type="email" 
+                id="email" 
+                name="email" 
+                value="<%= locals.formData?.email || '' %>"
+                required
+            >
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input 
+                type="password" 
+                id="password" 
+                name="password" 
+                required
+            >
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Login</button>
+    </form>
+    
+    <p class="auth-link">
+        Don't have an account? <a href="/signup">Sign up</a>
+    </p>
+</div>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,33 @@
+<%- include('partials/header') %>
+
+<div class="hero">
+    <h1>Welcome to AuthApp</h1>
+    <p>A secure authentication system built with Express, EJS, and Prisma</p>
+    <% if (!locals.user) { %>
+        <div class="cta-buttons">
+            <a href="/signup" class="btn btn-primary">Get Started</a>
+            <a href="/login" class="btn btn-secondary">Login</a>
+        </div>
+    <% } else { %>
+        <div class="cta-buttons">
+            <a href="/dashboard" class="btn btn-primary">Go to Dashboard</a>
+        </div>
+    <% } %>
+</div>
+
+<div class="features">
+    <div class="feature">
+        <h3>🔐 Secure</h3>
+        <p>Passwords hashed with bcrypt</p>
+    </div>
+    <div class="feature">
+        <h3>📦 Prisma</h3>
+        <p>Type-safe database access</p>
+    </div>
+    <div class="feature">
+        <h3>✅ Validation</h3>
+        <p>express-validator for input validation</p>
+    </div>
+</div>
+
+<%- include('partials/footer') %>
