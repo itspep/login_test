@@ -9,7 +9,8 @@
     "build": "prisma generate",
     "migrate:dev": "prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy",
-    "railway:migrate": "node scripts/railway-migrate.js"
+    "railway:migrate": "node scripts/railway-migrate.js",
+    "railway:start": "./scripts/start.sh"
   },
   "keywords": [],
   "author": "",
