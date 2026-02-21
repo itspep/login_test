@@ -5,25 +5,51 @@ const path = require('path');
 const dotenv = require('dotenv');
 const authRoutes = require('./routes/auth');
 const viewRoutes = require('./routes/views');
-const prisma = require('./utils/prisma');
+const { PrismaClient } = require('@prisma/client');
 
 // Load environment variables ONLY in development
 if (process.env.NODE_ENV !== 'production') {
   dotenv.config();
   console.log('📝 Loaded .env file (development mode)');
 } else {
-  console.log('🚀 Running in production mode, using environment variables');
+  console.log('🚀 Running in production mode');
 }
+
+// Construct DATABASE_URL from PG variables if they exist
+if (process.env.PGHOST && !process.env.DATABASE_URL) {
+  process.env.DATABASE_URL = `postgresql://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}?sslmode=require`;
+  console.log('✅ Constructed DATABASE_URL from PG variables');
+}
+
+// Initialize Prisma with the database URL
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL
+    }
+  }
+});
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Log database connection info (safely)
-console.log('📊 Database connection:', {
-  type: 'postgresql',
-  host: process.env.DATABASE_URL ? process.env.DATABASE_URL.split('@')[1]?.split('/')[0] : 'not set',
-  database: process.env.DATABASE_URL ? process.env.DATABASE_URL.split('/').pop() : 'not set'
+// Log environment info
+console.log('📊 Environment:', {
+  NODE_ENV: process.env.NODE_ENV,
+  PORT: process.env.PORT,
+  hasPGHOST: !!process.env.PGHOST,
+  hasPGUSER: !!process.env.PGUSER,
+  hasPGPASSWORD: !!process.env.PGPASSWORD,
+  hasDATABASE_URL: !!process.env.DATABASE_URL
 });
+
+if (process.env.PGHOST) {
+  console.log('📊 Database:', {
+    host: process.env.PGHOST,
+    port: process.env.PGPORT,
+    database: process.env.PGDATABASE
+  });
+}
 
 // View engine setup
 app.set('view engine', 'ejs');
@@ -43,7 +69,7 @@ app.use(session({
     cookie: {
         secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
-        maxAge: 1000 * 60 * 60 * 24 // 24 hours
+        maxAge: 1000 * 60 * 60 * 24
     }
 }));
 
@@ -56,10 +82,9 @@ app.use((req, res, next) => {
 // Health check endpoint
 app.get('/health', (req, res) => {
     res.status(200).json({ 
-        status: 'OK', 
-        message: 'Server is running',
+        status: 'OK',
         env: process.env.NODE_ENV,
-        database: process.env.DATABASE_URL ? 'configured' : 'missing'
+        database: !!(process.env.PGHOST || process.env.DATABASE_URL)
     });
 });
 
@@ -84,16 +109,16 @@ app.use((err, req, res, next) => {
 // Start server
 const start = async () => {
     try {
-        // Test database connection
         await prisma.$connect();
         console.log('✅ Database connected successfully');
         
         app.listen(PORT, '0.0.0.0', () => {
             console.log(`🚀 Server running on port ${PORT}`);
+            console.log(`🔍 Health check: /health`);
         });
     } catch (error) {
         console.error('❌ Failed to connect to database:', error.message);
-        console.error('Error code:', error.code);
+        console.error('Error details:', error);
         process.exit(1);
     }
 };
@@ -102,7 +127,6 @@ if (require.main === module) {
     start();
 }
 
-// Graceful shutdown
 process.on('SIGINT', async () => {
     await prisma.$disconnect();
     process.exit(0);

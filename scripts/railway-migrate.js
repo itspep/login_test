@@ -1,29 +1,28 @@
 const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
 
 console.log('==================================');
 console.log('🚂 Running Prisma migrations...');
 console.log('==================================');
 
-// Check if DATABASE_URL exists
-if (!process.env.DATABASE_URL) {
-  console.error('❌ DATABASE_URL is not set!');
+// Check Railway's built-in PG variables (these ALWAYS exist)
+console.log('📊 PostgreSQL variables check:');
+console.log('  PGHOST:', process.env.PGHOST || '❌ MISSING');
+console.log('  PGPORT:', process.env.PGPORT || '❌ MISSING');
+console.log('  PGUSER:', process.env.PGUSER || '❌ MISSING');
+console.log('  PGDATABASE:', process.env.PGDATABASE || '❌ MISSING');
+console.log('  PGPASSWORD exists:', process.env.PGPASSWORD ? '✅' : '❌');
+
+if (!process.env.PGHOST) {
+  console.error('❌ Critical: PostgreSQL host variables not found!');
+  console.error('This means the database is not properly linked to this service.');
   process.exit(1);
 }
 
-console.log('✅ DATABASE_URL is set');
-console.log(`📊 Database host: ${process.env.DATABASE_URL.includes('railway.internal') ? 'internal' : 'external'}`);
-
-// Delete Prisma engine cache if it exists (sometimes fixes issues)
-const prismaCacheDir = path.join('/tmp', 'prisma-engine-cache');
-if (fs.existsSync(prismaCacheDir)) {
-  fs.rmSync(prismaCacheDir, { recursive: true, force: true });
-  console.log('🧹 Cleared Prisma cache');
-}
+// Construct DATABASE_URL from PG variables for Prisma
+process.env.DATABASE_URL = `postgresql://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}?sslmode=require`;
+console.log('✅ Constructed DATABASE_URL from PG variables');
 
 try {
-  // Force Prisma to regenerate client with current environment
   console.log('🔄 Generating Prisma client...');
   execSync('npx prisma generate --force', { 
     stdio: 'inherit',
@@ -39,6 +38,5 @@ try {
   console.log('✅ Migrations completed successfully');
 } catch (error) {
   console.error('❌ Migration failed:', error.message);
-  console.log('📝 DATABASE_URL used:', process.env.DATABASE_URL ? 'present' : 'missing');
   process.exit(1);
 }

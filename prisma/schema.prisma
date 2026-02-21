@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")  // This MUST use environment variable
+  url      = "postgresql://${env("PGUSER")}:${env("PGPASSWORD")}@${env("PGHOST")}:${env("PGPORT")}/${env("PGDATABASE")}?sslmode=require"
 }
 
 model User {
