@@ -17,7 +17,8 @@ if (process.env.NODE_ENV !== 'production') {
 
 // Construct DATABASE_URL from PG variables if they exist
 if (process.env.PGHOST && !process.env.DATABASE_URL) {
-  process.env.DATABASE_URL = `postgresql://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}?sslmode=require`;
+  process.env.DIRECT_DATABASE_URL = `postgresql://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}?sslmode=require`;
+  process.env.DATABASE_URL = process.env.DIRECT_DATABASE_URL;
   console.log('✅ Constructed DATABASE_URL from PG variables');
 }
 
@@ -25,7 +26,7 @@ if (process.env.PGHOST && !process.env.DATABASE_URL) {
 const prisma = new PrismaClient({
   datasources: {
     db: {
-      url: process.env.DATABASE_URL
+      url: process.env.DIRECT_DATABASE_URL || process.env.DATABASE_URL
     }
   }
 });
@@ -40,7 +41,7 @@ console.log('📊 Environment:', {
   hasPGHOST: !!process.env.PGHOST,
   hasPGUSER: !!process.env.PGUSER,
   hasPGPASSWORD: !!process.env.PGPASSWORD,
-  hasDATABASE_URL: !!process.env.DATABASE_URL
+  hasDATABASE_URL: !!(process.env.DATABASE_URL || process.env.DIRECT_DATABASE_URL)
 });
 
 if (process.env.PGHOST) {

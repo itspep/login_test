@@ -18,8 +18,13 @@ if (!process.env.PGHOST) {
   process.exit(1);
 }
 
-// Construct DATABASE_URL from PG variables for Prisma
-process.env.DATABASE_URL = `postgresql://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}?sslmode=require`;
+// Construct DATABASE_URL from PG variables
+const databaseUrl = `postgresql://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}?sslmode=require`;
+
+// Set it as an environment variable for Prisma
+process.env.DIRECT_DATABASE_URL = databaseUrl;
+process.env.DATABASE_URL = databaseUrl;
+
 console.log('✅ Constructed DATABASE_URL from PG variables');
 
 try {
