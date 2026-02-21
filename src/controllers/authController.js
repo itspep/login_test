@@ -1,5 +1,5 @@
 const prisma = require('../utils/prisma');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');  // Changed from bcrypt to bcryptjs
 const { validationResult } = require('express-validator');
 
 // @desc    Register a new user
@@ -41,7 +41,7 @@ const signup = async (req, res) => {
             });
         }
 
-        // Hash password
+        // Hash password with bcryptjs (same API as bcrypt)
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -106,7 +106,7 @@ const login = async (req, res) => {
             });
         }
 
-        // Check password
+        // Check password with bcryptjs
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
         if (!isPasswordValid) {
